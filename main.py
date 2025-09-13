@@ -3,22 +3,16 @@ import google.generativeai as genai
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from dotenv import load_dotenv
-# 👇 1. CORS를 위한 미들웨어를 가져옵니다.
 from fastapi.middleware.cors import CORSMiddleware
 
-# .env 파일에서 환경 변수 로드
 load_dotenv()
 
-# FastAPI 앱 생성
 app = FastAPI(
     title="Vibe Coding 기술 언어 번역기",
     description="기술 용어를 누구나 이해하기 쉬운 비유와 은유로 번역해줍니다.",
-    version="0.3.0", # 버전 업데이트
+    version="0.3.0",
 )
 
-# 👇 2. CORS 미들웨어 설정
-# 모든 출처(origins), 모든 메서드(methods), 모든 헤더(headers)를 허용합니다.
-# 개발 환경에서는 "*"로 설정하여 모든 곳에서 오는 요청을 허용하는 것이 편리합니다.
 origins = ["*"]
 
 app.add_middleware(
@@ -29,19 +23,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-# Gemini API 키 설정
-# API 키가 코드에 직접 노출되지 않도록 .env 파일을 사용하는 것이 좋습니다.
 genai.configure(api_key=os.environ.get("GOOGLE_API_KEY"))
 
-# Gemini Pro 모델 설정
 model = genai.GenerativeModel('gemini-1.5-flash-latest')
 
-# 요청 본문(Request Body) 모델 정의
 class TechTerm(BaseModel):
     term: str
 
-# 응답 본문(Response Body) 모델 정의
 class TranslationResponse(BaseModel):
     term: str
     translation: str
@@ -74,7 +62,6 @@ async def translate_term(tech_term: TechTerm):
         기술 용어: {tech_term.term}
         """
         response = model.generate_content(prompt)
-        # Gemini 응답에서 불필요한 공백이나 마크다운을 제거합니다.
         clean_translation = response.text.strip().replace("*", "")
 
         return TranslationResponse(
@@ -88,8 +75,3 @@ async def translate_term(tech_term: TechTerm):
 @app.get("/")
 def read_root():
     return {"message": "Vibe Coding 번역기에 오신 것을 환영합니다! /docs 로 이동하여 API 문서를 확인하세요."}
-
-# api 구매
-# 앱 개발 비용
-# 운영 비용
-# 월급
